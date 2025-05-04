@@ -13,11 +13,7 @@ CREATE TABLE IF NOT EXISTS pdf_data (
     tables BLOB,
     metadata BLOB,
     annotations BLOB,
-    hyperlinks BLOB,
-    outlines BLOB,
-    bookmarks BLOB,
-    links BLOB,
-    textboxes BLOB
+    hyperlinks BLOB
 )
 ''')    
 
@@ -52,18 +48,10 @@ for pdf_tuple in pdf_temporary_files_list:
             annotations = page.annots
             # extract hyperlinks from the page
             hyperlinks = page.hyperlinks
-            outlines = None
-            # extract bookmarks from the page
-            bookmarks = pdf.bookmarks
-            # extract links from the page
-            links = page.links
-            # extract textboxes from the page
-            textboxes = page.textboxes
-            # write the extracted data to duckdb database
             con.execute('''
-            INSERT INTO pdf_data (original_url, text, images, tables, metadata, annotations, hyperlinks, outlines, bookmarks, links, textboxes)
+            INSERT INTO pdf_data (original_url, text, images, tables, metadata, annotations, hyperlinks)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (orig_url, text, images, tables, metadata, annotations, hyperlinks, outlines, bookmarks, links, textboxes))
+            ''', (orig_url, text, images, tables, metadata, annotations, hyperlinks))
     # close the connection
 con.close()
 # Delete the temporary files
