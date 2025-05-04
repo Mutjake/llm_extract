@@ -1,0 +1,32 @@
+name: Run Parse
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-parse:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install uv
+        run: cargo install uv
+
+      - name: Sync dependencies with uv
+        run: uv sync
+
+      - name: Run main script
+        run: uv run python main.py
+
+      - name: Upload DuckDB artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pdf_data_db
+          path: pdf_data.db
