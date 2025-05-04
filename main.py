@@ -50,7 +50,7 @@ for pdf_tuple in pdf_temporary_files_list:
             hyperlinks = page.hyperlinks
             con.execute('''
             INSERT INTO pdf_data (original_url, text, images, tables, metadata, annotations, hyperlinks)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (orig_url, text, images, tables, metadata, annotations, hyperlinks))
     # close the connection
 con.close()
