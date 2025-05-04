@@ -8,5 +8,5 @@ dependencies = [
     "duckdb>=1.2.2",
     "pdfplumber>=0.11.6",
     "requests>=2.32.3",
-    "gemma>=3.0.2"
+    "langchain_community>=0.3.23"
 ]
