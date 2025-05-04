@@ -37,17 +37,17 @@ for pdf_tuple in pdf_temporary_files_list:
         for page in pdf.pages:
             orig_url = pdf_tuple[1]
             # Extract text from the page
-            text = page.extract_text()  
+            text = page.extract_text() or None
             # extract images from the page
-            images = page.images
+            images = page.images or None
             # extract tables from the page
-            tables = page.extract_tables()
+            tables = page.extract_tables() or None
             # extract metadata from the page
-            metadata = pdf.metadata
+            metadata = pdf.metadata or None
             # extract annotations from the page
-            annotations = page.annots
+            annotations = page.annots or None
             # extract hyperlinks from the page
-            hyperlinks = page.hyperlinks
+            hyperlinks = page.hyperlinks or None
             con.execute('''
             INSERT INTO pdf_data (original_url, text, images, tables, metadata, annotations, hyperlinks)
             VALUES (?, ?, ?, ?, ?, ?, ?)
