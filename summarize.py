@@ -1,7 +1,5 @@
 import duckdb
-from langchain_community.llms import Ollama
-llm = Ollama(model="gemma2")
-
+import requests
 
 # Connect to the DuckDB database
 con = duckdb.connect('pdf_data.db')
@@ -10,6 +8,19 @@ con = duckdb.connect('pdf_data.db')
 result = con.execute("SELECT text FROM text_data").fetchall()
 text_data = " ".join(row[0] for row in result if row[0])
 
-summary = llm.invoke(f"Please summarize into a paragraph the following text: {text_data}")
-# Print the summary
-print("Summary:\n", summary)
+# Use Ollama's all-minilm:22m model for summarization
+response = requests.post(
+    "http://localhost:11434/api/generate",
+    json={
+        "model": "all-minilm:22m",
+        "prompt": f"Summarize the following text into a single paragraph:\n\n{text_data}"
+    }
+)
+
+# Check if the request was successful
+if response.status_code == 200:
+    summary = response.json().get("response", "No summary generated.")
+    print("Summary:\n", summary)
+else:
+    print("Failed to generate summary. Status code:", response.status_code)
+    print("Response:", response.text)
