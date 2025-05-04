@@ -28,6 +28,13 @@ jobs:
       - name: Run main script
         run: uv run python main.py
 
+      - name: Compress DuckDB artifact if needed
+        run: |
+          if [ -d "pdf_data.db" ]; then
+            zip -r pdf_data.zip pdf_data.db
+            mv pdf_data.zip pdf_data.db
+          fi
+
       - name: Upload DuckDB artifact
         uses: actions/upload-artifact@v4
         with:
@@ -60,7 +67,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pdf_data_db
-          path: ./pdf_data.db
+          path: ./pdf_data.zip
+
+      - name: Unzip DuckDB artifact if needed
+        run: |
+          if [ -f "pdf_data.zip" ]; then
+            unzip pdf_data.zip -d .
+            mv pdf_data ./pdf_data.db
+          fi
 
       - name: Run summarization script
         run: uv run python summarize.py
