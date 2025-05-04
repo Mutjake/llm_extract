@@ -7,7 +7,6 @@ con = duckdb.connect('pdf_data.db')
 # Create a table to store the extracted data
 con.execute('''
 CREATE TABLE IF NOT EXISTS pdf_data (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
     original_url TEXT,
     text TEXT,
     images BLOB,
