@@ -3,6 +3,7 @@ import duckdb
 import os
 import requests
 import json
+import pickle
 
 con = duckdb.connect('pdf_data.db')
 # Create a table to store the extracted data
@@ -10,7 +11,7 @@ con.execute('''
 CREATE TABLE IF NOT EXISTS pdf_data (
     original_url TEXT,
     text TEXT,
-    images JSON,
+    images BLOB,
     tables JSON,
     metadata JSON,
     annotations JSON,
@@ -38,8 +39,8 @@ for pdf_tuple in pdf_temporary_files_list:
             orig_url = pdf_tuple[1]
             # Extract text from the page
             text = page.extract_text() or None
-            # Convert images to JSON string
-            images = json.dumps(page.images) if page.images else None
+            # Serialize images as binary data
+            images = pickle.dumps(page.images) if page.images else None
             # Convert tables to JSON string
             tables = json.dumps(page.extract_tables()) if page.extract_tables() else None
             # Convert metadata to JSON string
