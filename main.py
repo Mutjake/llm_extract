@@ -5,22 +5,52 @@ import requests
 import json
 
 con = duckdb.connect('pdf_data.db')
-# Create a table to store the extracted data
+
+# Create separate tables for each extraction type
 con.execute('''
-CREATE TABLE IF NOT EXISTS pdf_data (
+CREATE TABLE IF NOT EXISTS text_data (
     original_url TEXT,
-    text TEXT,
-    images JSON,
-    tables JSON,
-    metadata JSON,
-    annotations JSON,
-    hyperlinks JSON
+    page_number INTEGER,
+    text TEXT
 )
-''')    
+''')
+con.execute('''
+CREATE TABLE IF NOT EXISTS images_data (
+    original_url TEXT,
+    page_number INTEGER,
+    image_data JSON
+)
+''')
+con.execute('''
+CREATE TABLE IF NOT EXISTS tables_data (
+    original_url TEXT,
+    page_number INTEGER,
+    table_data JSON
+)
+''')
+con.execute('''
+CREATE TABLE IF NOT EXISTS metadata_data (
+    original_url TEXT,
+    metadata JSON
+)
+''')
+con.execute('''
+CREATE TABLE IF NOT EXISTS annotations_data (
+    original_url TEXT,
+    page_number INTEGER,
+    annotation_data JSON
+)
+''')
+con.execute('''
+CREATE TABLE IF NOT EXISTS hyperlinks_data (
+    original_url TEXT,
+    page_number INTEGER,
+    hyperlink_data JSON
+)
+''')
 
 pdf_temporary_files_list = []
-# Read a newline separated list of PDF file urls from sources.txt
-
+# Read a newline-separated list of PDF file URLs from sources.txt
 with open('sources.txt', 'r') as file:
     pdf_url_list = file.read().splitlines()
     # Download each file into a temporary file and append the file path to the pdf_temporary_files_list
@@ -34,25 +64,60 @@ with open('sources.txt', 'r') as file:
 
 for pdf_tuple in pdf_temporary_files_list:
     with pdfplumber.open(pdf_tuple[0]) as pdf:
-        for page in pdf.pages:
-            orig_url = pdf_tuple[1]
-            # Extract text from the page
-            text = page.extract_text() or None
-            # Serialize images as JSON (extracting relevant attributes)
-            images = json.dumps([{"x0": img["x0"], "x1": img["x1"], "y0": img["y0"], "y1": img["y1"]} for img in page.images]) if page.images else None
-            # Convert tables to JSON string
-            tables = json.dumps(page.extract_tables()) if page.extract_tables() else None
-            # Convert metadata to JSON string
-            metadata = json.dumps(pdf.metadata) if pdf.metadata else None
-            # Convert annotations to JSON string
-            annotations = json.dumps(page.annots) if page.annots else None
-            # Convert hyperlinks to JSON string
-            hyperlinks = json.dumps(page.hyperlinks) if page.hyperlinks else None
-            # Insert the extracted data into the DuckDB database
+        orig_url = pdf_tuple[1]
+        # Insert metadata (only once per PDF)
+        metadata = json.dumps(pdf.metadata) if pdf.metadata else None
+        if metadata:
             con.execute('''
-            INSERT INTO pdf_data (original_url, text, images, tables, metadata, annotations, hyperlinks)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (orig_url, text, images, tables, metadata, annotations, hyperlinks))
+            INSERT INTO metadata_data (original_url, metadata)
+            VALUES (?, ?)
+            ''', (orig_url, metadata))
+
+        for page_number, page in enumerate(pdf.pages, start=1):
+            # Extract text
+            text = page.extract_text() or None
+            if text:
+                con.execute('''
+                INSERT INTO text_data (original_url, page_number, text)
+                VALUES (?, ?, ?)
+                ''', (orig_url, page_number, text))
+
+            # Extract images
+            if page.images:
+                for img in page.images:
+                    image_data = json.dumps({"x0": img["x0"], "x1": img["x1"], "y0": img["y0"], "y1": img["y1"]})
+                    con.execute('''
+                    INSERT INTO images_data (original_url, page_number, image_data)
+                    VALUES (?, ?, ?)
+                    ''', (orig_url, page_number, image_data))
+
+            # Extract tables
+            tables = page.extract_tables()
+            if tables:
+                for table in tables:
+                    table_data = json.dumps(table)
+                    con.execute('''
+                    INSERT INTO tables_data (original_url, page_number, table_data)
+                    VALUES (?, ?, ?)
+                    ''', (orig_url, page_number, table_data))
+
+            # Extract annotations
+            if page.annots:
+                for annot in page.annots:
+                    annotation_data = json.dumps(annot)
+                    con.execute('''
+                    INSERT INTO annotations_data (original_url, page_number, annotation_data)
+                    VALUES (?, ?, ?)
+                    ''', (orig_url, page_number, annotation_data))
+
+            # Extract hyperlinks
+            if page.hyperlinks:
+                for hyperlink in page.hyperlinks:
+                    hyperlink_data = json.dumps(hyperlink)
+                    con.execute('''
+                    INSERT INTO hyperlinks_data (original_url, page_number, hyperlink_data)
+                    VALUES (?, ?, ?)
+                    ''', (orig_url, page_number, hyperlink_data))
 
 # Close the connection
 con.close()
