@@ -30,11 +30,11 @@ with open('sources.txt', 'r') as file:
         #download each file into temporary file and append the file path to the pdf_temporary_files_list
     for url in pdf_url_list:
         response = requests.get(url)
-            # Save the PDF to a temporary file
-            temp_file = f"temp_{url.split('/')[-1]}"
-            with open(temp_file, 'wb') as temp_pdf:
-                temp_pdf.write(response.content)
-            pdf_temporary_files_list.append((temp_file, url,))
+        # Save the PDF to a temporary file
+        temp_file = f"temp_{url.split('/')[-1]}"
+        with open(temp_file, 'wb') as temp_pdf:
+            temp_pdf.write(response.content)
+        pdf_temporary_files_list.append((temp_file, url,))
 
 
 for pdf_tuple in pdf_temporary_files_list:
