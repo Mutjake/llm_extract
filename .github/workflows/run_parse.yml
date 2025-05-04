@@ -28,6 +28,7 @@ jobs:
       - name: Install Ollama CLI
         run: |
           curl -fsSL https://ollama.com/download.sh | bash
+          echo 'export PATH=$PATH:/usr/local/bin' >> $GITHUB_ENV
 
       - name: Pull all-minilm:22m model
         run: ollama pull all-minilm:22m
