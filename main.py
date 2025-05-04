@@ -52,8 +52,7 @@ for pdf_tuple in pdf_temporary_files_list:
             annotations = page.annots
             # extract hyperlinks from the page
             hyperlinks = page.hyperlinks
-            # extract outlines from the page
-            outlines = pdf.outlines
+            outlines = None
             # extract bookmarks from the page
             bookmarks = pdf.bookmarks
             # extract links from the page
