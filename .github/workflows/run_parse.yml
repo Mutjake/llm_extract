@@ -24,4 +24,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pdf_data_db
-          path: pdf_data.db
+          path: ./pdf_data.db
