@@ -25,3 +25,24 @@ jobs:
         with:
           name: pdf_data_db
           path: ./pdf_data.db
+  summarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync dependencies with uv
+        run: uv sync
+
+      - name: Download DuckDB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf_data_db
+          path: ./pdf_data.db
+
+      - name: Run summarization script
+        run: uv run python summarize.py
